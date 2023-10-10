@@ -33,35 +33,8 @@ class ClassRoI(SuperRoI):
         preds = model.predict(np.expand_dims(image, 0))[0]
         preds = tf.math.sigmoid(preds)
         preds = tf.cast(preds >= 0.5, 'float32')
-        # print(preds.dtype)
-
-
-
-        # # max_preds = preds.argmax(axis=-1)
-        # max_preds = tf.argmax(preds, axis=-1)
-        # max_preds = max_preds.numpy()
-        # print(max_preds.dtype)
-        # print(max_preds)
-        # self.image = image
-
-        # print('Shape of preds:', preds.shape)
-        # print('Value of cls:', cls)
-
-        # self.roi = np.round(preds[..., cls] * (max_preds == cls)).reshape(image.shape[-3], image.shape[-2])
-        # self.fullroi = self.roi
-        # self.setRoIij()
-
-        # 不需要用 argmax，因为 preds 已经是二值化的
-        # max_preds = tf.argmax(preds, axis=-1)
-
         self.image = image
-
-        print('Shape of preds:', preds.shape)
-        print('Value of cls:', cls)
-
-        # 根据 cls 的值选择掩码
         mask = preds if cls == 1 else 1 - preds
-        # 转换 mask 到 numpy 数组并重塑它
         self.roi = np.round(mask).reshape(image.shape[-3], image.shape[-2])
         self.fullroi = self.roi
         self.setRoIij()
