@@ -189,13 +189,13 @@ class SegGradCAM:
     def activationMap(self):
         """The last step to get the activation map. Should be called after outputGradients and gradientWeights."""
         # weighted sum of feature maps: sum of alpha^k_c * A^k
-        print("Shape of self.A:", self.A.shape)
-        print("Shape of self.alpha_c:", self.alpha_c.shape)
         cam = np.dot(self.A, self.alpha_c)  # *abs(grads_val) or max(grads_val,0)
-        print("Shape of cam:", cam.shape)
         all_cam = np.multiply(self.A, self.alpha_c[None, None, :])
         all_cam = np.maximum(all_cam, 0)
-        print("Shape of all_cam:", all_cam.shape)
+        # print("Shape of self.A:", self.A.shape)
+        # print("Shape of self.alpha_c:", self.alpha_c.shape)
+        # print("Shape of cam:", cam.shape)
+        # print("Shape of all_cam:", all_cam.shape)
 
 
         img_dim = self.image.shape[:2]
