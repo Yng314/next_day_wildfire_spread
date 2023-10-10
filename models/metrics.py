@@ -26,6 +26,7 @@ class AUCWithMaskedClass(tf.keras.metrics.AUC):
   """
 
   def __init__(self, with_logits = False, **kwargs):
+    kwargs.pop('curve', None)
     super(AUCWithMaskedClass, self).__init__(curve="PR", **kwargs)
     # super(AUCWithMaskedClass, self).__init__(**kwargs)
     self.with_logits = with_logits
