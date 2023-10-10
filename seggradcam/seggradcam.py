@@ -31,9 +31,38 @@ class SuperRoI:  # or rename it to ClassRoI
 class ClassRoI(SuperRoI):
     def __init__(self, model, image, cls):
         preds = model.predict(np.expand_dims(image, 0))[0]
-        max_preds = preds.argmax(axis=-1)
+        preds = tf.math.sigmoid(preds)
+        preds = tf.cast(preds >= 0.5, 'float32')
+        # print(preds.dtype)
+
+
+
+        # # max_preds = preds.argmax(axis=-1)
+        # max_preds = tf.argmax(preds, axis=-1)
+        # max_preds = max_preds.numpy()
+        # print(max_preds.dtype)
+        # print(max_preds)
+        # self.image = image
+
+        # print('Shape of preds:', preds.shape)
+        # print('Value of cls:', cls)
+
+        # self.roi = np.round(preds[..., cls] * (max_preds == cls)).reshape(image.shape[-3], image.shape[-2])
+        # self.fullroi = self.roi
+        # self.setRoIij()
+
+        # 不需要用 argmax，因为 preds 已经是二值化的
+        # max_preds = tf.argmax(preds, axis=-1)
+
         self.image = image
-        self.roi = np.round(preds[..., cls] * (max_preds == cls)).reshape(image.shape[-3], image.shape[-2])
+
+        print('Shape of preds:', preds.shape)
+        print('Value of cls:', cls)
+
+        # 根据 cls 的值选择掩码
+        mask = preds if cls == 1 else 1 - preds
+        # 转换 mask 到 numpy 数组并重塑它
+        self.roi = np.round(mask).reshape(image.shape[-3], image.shape[-2])
         self.fullroi = self.roi
         self.setRoIij()
 
@@ -164,7 +193,12 @@ class SegGradCAM:
             # 确保tape会跟踪任何可训练变量的访问
             tape.watch(intermediate_model.trainable_variables)
             conv_output, logits_output = intermediate_model(preprocessed_input)
-            y_c = logits_output[..., self.cls] * self.roi.roi
+            if logits_output.shape[-1] > 1:
+                prob = logits_output[..., self.cls]
+            else:
+                prob = logits_output[..., 0] if self.cls == 1 else 1 - logits_output[..., 0]
+            y_c = prob * self.roi.roi
+            # y_c = logits_output[..., self.cls] * self.roi.roi
             loss = tf.reduce_sum(y_c)
 
         # 计算梯度
